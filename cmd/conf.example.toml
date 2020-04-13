@@ -1,0 +1,27 @@
+[application]
+    env = "dev"
+    logPath = "log.log"
+    pidPath = "pid.pid"
+
+[httpServer]
+    addr = ":8080"
+
+[pushServer]
+    token = "8BjnHseBNmwMkZdZNCJtxWg0Z937ks0M"
+    queueKey = "__logqueue"
+
+[mysql]
+    host = "192.168.11.132"
+    port = 3306
+    user = "root"
+    passwd = "123123"
+    dbName = "logsync"
+
+[redis]
+    host = "192.168.11.132"
+    port = 6379
+    passwd = ""
+    db = 0
+
+[elasticSearch]
+    url = "http://47.56.233.199:9200"
