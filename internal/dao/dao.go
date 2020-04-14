@@ -20,6 +20,7 @@ type Dao struct {
 	Elastic *elastic.Client
 	LogDao *LogDao
 	UserDao *UserDao
+	PushappDao *PushappDao
 }
 
 func New(cfg *config.Config) *Dao {
@@ -30,6 +31,7 @@ func New(cfg *config.Config) *Dao {
 		Elastic: newElasticSearch(cfg.ElasticSearch),
 		LogDao: &LogDao{},
 		UserDao: &UserDao{},
+		PushappDao: &PushappDao{},
 	}
 	//d.db.LogMode(true)
 	return d
@@ -46,6 +48,7 @@ func newDb(cfg *config.Mysql) *gorm.DB{
 func newRedis(cfg *config.Redis) *redis.Client{
 	rds := redis.NewClient(&redis.Options{
 		Addr:               fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Password: cfg.Passwd,
 		DB:                 cfg.Db,
 	})
 	return rds

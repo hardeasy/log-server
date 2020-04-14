@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/olivere/elastic"
 	"log-server/internal/dto"
 	"log-server/internal/models"
-	"time"
 )
 
 type LogDao struct {
@@ -18,17 +16,30 @@ type LogDao struct {
 func (this LogDao) GetListEs(esClient *elastic.Client, d *dto.GeneralListDto) (rList []*models.Log, rSum int) {
 	rList = []*models.Log{}
 	rSum = 0
-	ctx := context.Background()
-	termQuery := elastic.NewTermQuery("level", "error")
 
-	index := fmt.Sprintf("%s-%s-*", this.GetNowLogIndexNamePrefix(), time.Now().Format("2006"))
-	searchResult, _ := esClient.Search().
-		Index(index).   // search in index "twitter"
-		Query(termQuery).   // specify the query
-		Sort("time", false). // sort by "user" field, ascending
+	appCode := d.Q["appCode"]
+	logIndexName := this.GetLogIndexName(appCode)
+	search := esClient.Search().
+		Index(logIndexName).   // search in index "twitter"
+		//Sort("time", false). // sort by "user" field, ascending
+		Type("_doc").
 		From(d.Offset).Size(d.Limit).   // take documents 0-9
-		Pretty(true).       // pretty print request and response JSON
-		Do(ctx)             //
+		Pretty(true)       // pretty print request and response JSON
+
+	level := d.Q["level"]
+	if len(level) > 0 {
+		termQuery := elastic.NewTermQuery("level", level)
+		search.Query(termQuery)
+	}
+
+	content := d.Q["content"]
+	if len(content) > 0 {
+		fullQuery := elastic.NewMatchQuery("content", content)
+		search.Query(fullQuery)
+	}
+
+	ctx := context.Background()
+	searchResult, _ := search.Do(ctx)
 	rSum = int(searchResult.Hits.TotalHits)
 	if rSum > 0 {
 		for _, hit := range searchResult.Hits.Hits {
@@ -41,26 +52,25 @@ func (this LogDao) GetListEs(esClient *elastic.Client, d *dto.GeneralListDto) (r
 			rList = append(rList, &log)
 		}
 	}
-	return;
+	return
 }
 
-func (LogDao) GetListDb(db *gorm.DB, d *dto.GeneralListDto) (rList []*models.Log, rSum int) {
-	if url, ok := d.Q["url"]; ok && len(url) > 0 {
-		db = db.Where("url like ?", fmt.Sprintf("%s%%", url))
+func (this LogDao) GetById(esClient *elastic.Client, appCode string, id string) *models.Log {
+	cxt := context.Background()
+	logIndexName := this.GetLogIndexName(appCode)
+	result, err := esClient.Get().Index(logIndexName).Type("_doc").Id(id).Do(cxt)
+	if err != nil {
+		return nil
 	}
-	if category, ok := d.Q["category"]; ok && len(category) > 0 {
-		db = db.Where("category = ?", category)
+	if result.Found {
+		var log *models.Log
+		err := json.Unmarshal(*result.Source, &log)
+		if err == nil {
+			log.Id = result.Id
+			return log
+		}
 	}
-	if content, ok := d.Q["content"]; ok && len(content) > 0 {
-		db = db.Where("content like ?", fmt.Sprintf("%%%s%%", content))
-	}
-	orderBy := "id desc"
-	if len(d.Order)  > 0 {
-		orderBy = d.Order
-	}
-	db.Order(orderBy).Offset(d.Offset).Limit(d.Limit).Model(&models.Log{}).Count(&rSum)
-	db.Order(orderBy).Offset(d.Offset).Limit(d.Limit).Find(&rList)
-	return
+	return nil
 }
 
 func (this LogDao) AddPushLog(esClient *elastic.Client, d dto.PushLogDto) error {
@@ -69,18 +79,18 @@ func (this LogDao) AddPushLog(esClient *elastic.Client, d dto.PushLogDto) error 
 		Id: "",
 		Level: d.Level,
 		Time:  d.Time,
-		Data:  d.Data,
+		Content:  d.Content,
+		Appcode: d.Appcode,
 	}
-	nowDayLogIndex := this.GetNowLogIndexName()
-	esClient.Index().Index(nowDayLogIndex).Type("_doc").BodyJson(log).Do(cxt)
+	logIndexName := this.GetLogIndexName(d.Appcode)
+	esClient.Index().Index(logIndexName).Type("_doc").BodyJson(log).Do(cxt)
 	return nil
 }
 
-func (LogDao) GetNowLogIndexNamePrefix() string {
+func (LogDao) GetLogIndexNamePrefix() string {
 	return "log"
 }
 
-func (this LogDao) GetNowLogIndexName() string {
-	date := time.Now().Format("2006-01")
-	return fmt.Sprintf("%s-%s", this.GetNowLogIndexNamePrefix(), date)
+func (this LogDao) GetLogIndexName(appcode string) string {
+	return fmt.Sprintf("%s-%s", this.GetLogIndexNamePrefix(), appcode)
 }

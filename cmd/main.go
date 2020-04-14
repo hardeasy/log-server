@@ -66,5 +66,5 @@ func main() {
 	go func() {
 		servs.Stop()
 	}()
-	httpServer.Shutdown();
+	httpServer.Shutdown()
 }

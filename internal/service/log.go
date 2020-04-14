@@ -12,6 +12,10 @@ func (s *Service) GetLogList(d *dto.GeneralListDto) (rList []*models.Log, rSum i
 	return
 }
 
+func (s *Service) GetById(appCode string, id string) *models.Log {
+	return s.Dao.LogDao.GetById(s.Dao.Elastic, appCode, id)
+}
+
 func (s *Service) Push(d dto.PushLogDto) (rErr error) {
 	data, _ := json.Marshal(d)
 	s.Dao.Redis.RPush(s.Cfg.PushServer.QueueKey, string(data))
@@ -27,7 +31,7 @@ func (s *Service) PushQueueListen() {
 		}
 		str, _ := s.Dao.Redis.LPop(s.Cfg.PushServer.QueueKey).Result()
 		if len(str) == 0 {
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 2)
 		}
 		var pushDto  dto.PushLogDto
 		if err := json.Unmarshal([]byte(str), &pushDto); err == nil {

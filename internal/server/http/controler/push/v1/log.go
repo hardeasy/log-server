@@ -15,6 +15,8 @@ func (this *controller) Push(c *gin.Context) {
 		})
 		return
 	}
+	appCode,_ := c.Keys["appCode"].(string)
+	data.Appcode = appCode
 	err := this.Service.Push(data)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{

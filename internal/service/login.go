@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v7"
 	"log-server/internal/dto"
+	"log-server/internal/models"
 	"log-server/internal/utils"
 	"time"
 )
@@ -15,11 +16,23 @@ const (
 )
 
 func (s *Service) Login(d *dto.LoginDto) (rToken string, rErr error) {
+	var err error
+	//repeat login check
+	userTokenRedisKey := s.GetLoginUserRedisKey(d.Username)
+	token, err2 := s.Dao.Redis.Get(userTokenRedisKey).Result()
+	if err2 != redis.Nil {
+		_, err2 := s.CheckLogin(token, true)
+		if err2 == nil {
+			rToken = token
+			rErr = nil
+			return
+		}
+	}
+
 	user := s.Dao.UserDao.GetByUsername(s.Dao.Db, d.Username)
 	if user == nil || user.Password != s.EncryPasswd(d.Password) {
 		return "", errors.New("login error")
 	}
-	var err error
 	rToken, err = s.Auth(d.Username)
 	if err != nil {
 		return "", errors.New("service error")
@@ -37,9 +50,11 @@ func (s *Service) Auth(username string) (rToken string, rErr error) {
 	for i := 0; i < 5; i++ {
 		token = s.GenerateLoginToken()
 		redisKey := s.GetLoginRedisKey(token)
+		userTokenRedisKey := s.GetLoginUserRedisKey(username)
 		_, err := s.Dao.Redis.Get(redisKey).Result()
 		if err == redis.Nil {
-			s.Dao.Redis.Set(redisKey, username, tokenExpiresTime)
+			s.Dao.Redis.Set(redisKey, username, tokenExpiresTime) //token -> username
+			s.Dao.Redis.Set(userTokenRedisKey, token, tokenExpiresTime) //username -> token
 			return token, nil
 		}
 	}
@@ -51,7 +66,7 @@ func (s *Service) EncryPasswd(passwd string) string {
 	return fmt.Sprintf("%x", has)
 }
 
-func (s *Service) CheckLogin(token string, renewTTL bool) (string, error){
+func (s *Service) CheckLogin(token string, renewTTL bool) (username string, err error){
 	if len(token) == 0 {
 		return "", errors.New("not found")
 	}
@@ -68,4 +83,12 @@ func (s *Service) CheckLogin(token string, renewTTL bool) (string, error){
 
 func (s *Service) GetLoginRedisKey(token string) string {
 	return fmt.Sprintf("login_%s", token)
+}
+
+func (s *Service) GetLoginUserRedisKey(username string) string {
+	return fmt.Sprintf("user_%s", username)
+}
+
+func (s *Service) GetUserByName(username string) *models.User {
+	return s.Dao.UserDao.GetByUsername(s.Dao.Db, username)
 }

@@ -25,9 +25,9 @@ func (this *controller) GetLogList(c *gin.Context) {
 		Limit:  pageSize,
 		Order:  "",
 		Q: map[string]string{
-			"url": c.Query("url"),
-			"category": c.Query("category"),
+			"level": c.Query("level"),
 			"content": c.Query("content"),
+			"appCode": c.Param("appcode"),
 		},
 	}
 
@@ -40,4 +40,23 @@ func (this *controller) GetLogList(c *gin.Context) {
 			"total": sum,
 		},
 	})
+}
+
+func (this *controller) GetLogDetail(c *gin.Context) {
+	id := c.Param("id")
+	if len(id) == 0 {
+		this.Error(c, "id not found")
+		return
+	}
+	appcode := c.Param("appcode")
+	if len(appcode) == 0 {
+		this.Error(c, "appcode not found")
+		return
+	}
+	d := this.Service.GetById(appcode, id)
+	if d == nil {
+		this.Error(c, "not found")
+		return
+	}
+	this.Echo(c, d, "")
 }

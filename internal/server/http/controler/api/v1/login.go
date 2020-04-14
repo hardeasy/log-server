@@ -6,24 +6,20 @@ import (
 )
 
 func (this *controller) Login(c *gin.Context) {
-	d := &dto.LoginDto{
-		Username: "admin",
-		Password: "123123",
+	d := &dto.LoginDto{}
+
+	if err := c.ShouldBind(d); err != nil {
+		this.Error(c, "请求格式错误")
+		return
 	}
 
 	token, err := this.Service.Login(d)
 	if err != nil {
-		c.JSON(200, map[string]interface{}{
-			"code": -1,
-			"message": err.Error(),
-		})
+		this.Error(c, err.Error())
 		return
 	}
 
-	c.JSON(200, map[string]interface{}{
-		"code": 0,
-		"data": map[string]interface{}{
-			"token": token,
-		},
-	})
+	this.Echo(c, map[string]interface{}{
+		"token": token,
+	}, "")
 }
