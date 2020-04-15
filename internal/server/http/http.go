@@ -54,8 +54,8 @@ func (this *HttpServer) Run() {
 		api.GET("/logs", apiController.GetLogList)
 		api.OPTIONS("/logs", apiController.GetLogList)
 
-		api.GET("/logs/:id", apiController.GetLogDetail)
-		api.OPTIONS("/logs/:id", apiController.GetLogDetail)
+		api.GET("/logs/:appcode/:id", apiController.GetLogDetail)
+		api.OPTIONS("/logs/:appcode/:id", apiController.GetLogDetail)
 
 		api.GET("/users/me", apiController.GetUserById)
 		api.OPTIONS("/users/me", apiController.GetUserById)

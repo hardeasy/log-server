@@ -61,10 +61,6 @@ func (this *controller) GetLogDetail(c *gin.Context) {
 		return
 	}
 	appcode := c.Param("appcode")
-	if len(appcode) == 0 {
-		this.Error(c, "appcode not found")
-		return
-	}
 	d := this.Service.GetById(appcode, id)
 	if d == nil {
 		this.Error(c, "not found")
