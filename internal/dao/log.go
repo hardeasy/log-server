@@ -9,6 +9,10 @@ import (
 	"log-server/internal/models"
 )
 
+const (
+	ES_Return_Max_Total = 10000 //ES使用from+size方式，为防止深分页最多只能返回的最大数量
+)
+
 type LogDao struct {
 
 }
@@ -18,7 +22,9 @@ func (this LogDao) GetListEs(esClient *elastic.Client, d *dto.GeneralListDto) (r
 	rSum = 0
 
 	appCode := d.Q["appCode"]
+
 	logIndexName := this.GetLogIndexName(appCode)
+
 	search := esClient.Search().
 		Index(logIndexName).   // search in index "twitter"
 		//Sort("time", false). // sort by "user" field, ascending
@@ -39,8 +45,15 @@ func (this LogDao) GetListEs(esClient *elastic.Client, d *dto.GeneralListDto) (r
 	}
 
 	ctx := context.Background()
-	searchResult, _ := search.Do(ctx)
+	searchResult, err := search.Do(ctx)
+	if err != nil {
+		fmt.Println(d,err)
+		return
+	}
 	rSum = int(searchResult.Hits.TotalHits)
+	if rSum > ES_Return_Max_Total {
+		rSum = ES_Return_Max_Total - d.Limit
+	}
 	if rSum > 0 {
 		for _, hit := range searchResult.Hits.Hits {
 			var log models.Log
@@ -92,5 +105,9 @@ func (LogDao) GetLogIndexNamePrefix() string {
 }
 
 func (this LogDao) GetLogIndexName(appcode string) string {
-	return fmt.Sprintf("%s-%s", this.GetLogIndexNamePrefix(), appcode)
+	prefix := this.GetLogIndexNamePrefix()
+	if len(appcode) == 0 {
+		return fmt.Sprintf("%s*", prefix)
+	}
+	return fmt.Sprintf("%s-%s", prefix, appcode)
 }

@@ -26,3 +26,9 @@ func (this *PushappDao) GetByAccessToken(db *gorm.DB, accessToken string) *model
 	}
 	return pushapp
 }
+
+func (this *PushappDao) GetAll(db *gorm.DB) []*models.PushApp {
+	list := []*models.PushApp{}
+	db.Find(&list)
+	return list
+}

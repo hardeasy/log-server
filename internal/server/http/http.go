@@ -45,10 +45,23 @@ func (this *HttpServer) Run() {
 	api := r.Group("/api/v1")
 	api.Use(mdw.CorsFilter, mdw.AuthUserFilter)
 	{
-		api.GET("/apps/:appcode/logs", apiController.GetLogList)
-		api.GET("/apps/:appcode/logs/:id", apiController.GetLogDetail)
-		api.GET("/users/me", apiController.GetUserById)
 		api.POST("/login", apiController.Login)
+		api.OPTIONS("/login", apiController.Login)
+
+		api.POST("/logout", apiController.Logout)
+		api.OPTIONS("/logout", apiController.Logout)
+
+		api.GET("/logs", apiController.GetLogList)
+		api.OPTIONS("/logs", apiController.GetLogList)
+
+		api.GET("/logs/:id", apiController.GetLogDetail)
+		api.OPTIONS("/logs/:id", apiController.GetLogDetail)
+
+		api.GET("/users/me", apiController.GetUserById)
+		api.OPTIONS("/users/me", apiController.GetUserById)
+
+		api.GET("/apps", apiController.GetPushAppAll)
+		api.OPTIONS("/apps", apiController.GetPushAppAll)
 	}
 
 	push := r.Group("/push/v1")

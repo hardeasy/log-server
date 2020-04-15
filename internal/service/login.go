@@ -41,6 +41,18 @@ func (s *Service) Login(d *dto.LoginDto) (rToken string, rErr error) {
 	return
 }
 
+func (s *Service) Logout(token string) (rErr error) {
+	rErr = nil
+	redisKey := s.GetLoginRedisKey(token)
+	username,err  := s.Dao.Redis.Get(redisKey).Result()
+	if err != nil {
+		userTokenRedisKey := s.GetLoginUserRedisKey(username)
+		s.Dao.Redis.Del(userTokenRedisKey)
+	}
+	s.Dao.Redis.Del(redisKey)
+	return
+}
+
 func (s *Service) GenerateLoginToken() string {
 	return utils.RandString(20)
 }

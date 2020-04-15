@@ -23,3 +23,10 @@ func (this *controller) Login(c *gin.Context) {
 		"token": token,
 	}, "")
 }
+
+func (this *controller) Logout(c *gin.Context) {
+	token := c.GetHeader("X-TOKEN")
+	this.Service.Logout(token)
+	this.Echo(c, nil, "ok")
+	return
+}

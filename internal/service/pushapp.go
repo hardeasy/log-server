@@ -32,3 +32,7 @@ func (s *Service) GetPushAppbyAccessToken(accessToken string) *models.PushApp {
 	}()
 	return pushapp
 }
+
+func (s Service) GetPushAppAll() []*models.PushApp {
+	return s.Dao.PushappDao.GetAll(s.Dao.Db)
+}

@@ -3,7 +3,9 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"log-server/internal/dto"
+	"log-server/internal/utils"
 	"strconv"
+	"time"
 )
 
 func (this *controller) GetLogList(c *gin.Context) {
@@ -27,11 +29,21 @@ func (this *controller) GetLogList(c *gin.Context) {
 		Q: map[string]string{
 			"level": c.Query("level"),
 			"content": c.Query("content"),
-			"appCode": c.Param("appcode"),
+			"appCode": c.Query("appcode"),
 		},
 	}
 
-	list,sum := this.Service.GetLogList(d)
+	result,sum := this.Service.GetLogList(d)
+	list := []dto.Log{}
+	for _, item := range result {
+		list = append(list, dto.Log{
+			Id:      item.Id,
+			Level:   item.Level,
+			Time:    time.Unix(int64(item.Time), 0).Format(utils.DatetimeFormart),
+			Content: item.Content,
+			Appcode: item.Appcode,
+		})
+	}
 
 	c.JSON(200, map[string]interface{}{
 		"code": 0,
