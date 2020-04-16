@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type PushApp struct {
+type App struct {
 	Id int `gorm:"primary_key;AUTO_INCREMENT"`
 	Name string
 	Code string
@@ -11,6 +11,6 @@ type PushApp struct {
 	UpdatedAt time.Time
 }
 
-func (PushApp) TableName() string {
-	return "tbl_push_app"
+func (App) TableName() string {
+	return "tbl_app"
 }

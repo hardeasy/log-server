@@ -60,8 +60,10 @@ func (this *HttpServer) Run() {
 		api.GET("/users/me", apiController.GetUserById)
 		api.OPTIONS("/users/me", apiController.GetUserById)
 
-		api.GET("/apps", apiController.GetPushAppAll)
-		api.OPTIONS("/apps", apiController.GetPushAppAll)
+		api.GET("/apps", apiController.GetAppAll)
+		api.POST("/apps", apiController.AddApp)
+		api.PUT("/apps", apiController.EditApp)
+		api.OPTIONS("/apps", apiController.GetAppAll)
 	}
 
 	push := r.Group("/push/v1")

@@ -20,7 +20,7 @@ type Dao struct {
 	Elastic *elastic.Client
 	LogDao *LogDao
 	UserDao *UserDao
-	PushappDao *PushappDao
+	AppDao *AppDao
 }
 
 func New(cfg *config.Config) *Dao {
@@ -31,7 +31,7 @@ func New(cfg *config.Config) *Dao {
 		Elastic: newElasticSearch(cfg.ElasticSearch),
 		LogDao: &LogDao{},
 		UserDao: &UserDao{},
-		PushappDao: &PushappDao{},
+		AppDao: &AppDao{},
 	}
 	//d.db.LogMode(true)
 	return d

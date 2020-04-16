@@ -31,7 +31,7 @@ func (this *MiddleWare) AuthUserFilter(c *gin.Context) {
 func (this *MiddleWare) PushAuthFilter(c *gin.Context) {
 	token := c.GetHeader("X-TOKEN")
 	//查询
-	pushApp := this.Service.GetPushAppbyAccessToken(token)
+	pushApp := this.Service.GetAppbyAccessToken(token)
 	if pushApp == nil {
 		c.JSON(http.StatusOK, map[string]interface{}{
 			"code": 401,
