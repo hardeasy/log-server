@@ -57,3 +57,9 @@ c 5000 n 100000
 ![pic](https://easywen.oss-cn-beijing.aliyuncs.com/eccang/log/%E6%80%A7%E8%83%BD1.png)
 
 
+## TODO  
+* 应用与索引库解耦       
+  目前应用与与索引库硬编码绑定 比如应用编码 test，则索引库为 log-test, 后期不方便分索引库和删除
+
+* 后台权限管理    
+目前没有用户权限，能看到所有应用与操作
