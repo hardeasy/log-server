@@ -66,5 +66,13 @@ func (this *controller) GetLogDetail(c *gin.Context) {
 		this.Error(c, "not found")
 		return
 	}
-	this.Echo(c, d, "")
+	data := dto.Log{
+		Id:      d.Id,
+		Level:   d.Level,
+		Time:    time.Unix(int64(d.Time), 0).Format(utils.DatetimeFormart),
+		Content: d.Content,
+		Appcode: d.Appcode,
+	}
+
+	this.Echo(c, data, "")
 }
