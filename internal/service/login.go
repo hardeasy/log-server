@@ -1,7 +1,6 @@
 package service
 
 import (
-	"crypto/md5"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v7"
@@ -30,7 +29,7 @@ func (s *Service) Login(d *dto.LoginDto) (rToken string, rErr error) {
 	}
 
 	user := s.Dao.UserDao.GetByUsername(s.Dao.Db, d.Username)
-	if user == nil || user.Password != s.EncryPasswd(d.Password) {
+	if user == nil || user.Password != EncryPasswd(d.Password) {
 		return "", errors.New("login error")
 	}
 	rToken, err = s.Auth(d.Username)
@@ -73,11 +72,6 @@ func (s *Service) Auth(username string) (rToken string, rErr error) {
 	return "", errors.New("auth error")
 }
 
-func (s *Service) EncryPasswd(passwd string) string {
-	has := md5.Sum([]byte(passwd))
-	return fmt.Sprintf("%x", has)
-}
-
 func (s *Service) CheckLogin(token string, renewTTL bool) (username string, err error){
 	if len(token) == 0 {
 		return "", errors.New("not found")
@@ -103,4 +97,7 @@ func (s *Service) GetLoginUserRedisKey(username string) string {
 
 func (s *Service) GetUserByName(username string) *models.User {
 	return s.Dao.UserDao.GetByUsername(s.Dao.Db, username)
+}
+func (s *Service) GetUserById(id int) *models.User {
+	return s.Dao.UserDao.GetByUseId(s.Dao.Db, id)
 }

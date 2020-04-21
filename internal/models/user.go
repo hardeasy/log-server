@@ -7,10 +7,9 @@ type User struct {
 	Username string
 	Password string
 	Email string
-	Phone string
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	Open int
+	IsOpen int
 }
 
 func (User) TableName() string {

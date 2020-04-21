@@ -59,6 +59,8 @@ func (this *HttpServer) Run() {
 
 		api.GET("/users/me", apiController.GetUserById)
 		api.OPTIONS("/users/me", apiController.GetUserById)
+		api.POST("/users", apiController.AddUser)
+		api.PATCH("/users/:id", apiController.EditUser)
 
 		api.GET("/apps", apiController.GetAppAll)
 		api.POST("/apps", apiController.AddApp)
