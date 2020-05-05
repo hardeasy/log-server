@@ -12,12 +12,26 @@ type App struct {
 type AddApp struct {
 	Name string `json:"name" binding:"required"`
 	Code string `json:"code" binding:"required"`
-	AccessToken string `json:"access_token"`
 }
 
 type EditApp struct {
 	Id int `json:"id" binding:"required"`
 	Name string `json:"name" binding:"required"`
 	Code string `json:"code" binding:"required"`
-	AccessToken string `json:"access_token"`
+}
+
+type AddAppMember struct {
+	AppId int `json:"app_id"`
+	UserIds []int `json:"user_ids" binding:"required"`
+}
+
+type DeleteAppMember struct {
+	AppId int `json:"app_id"`
+	UserId int `json:"user_id"`
+}
+
+type AppMember struct {
+	UserId int `json:"user_id"`
+	Username string `json:"username"`
+	Email string `json:"email"`
 }

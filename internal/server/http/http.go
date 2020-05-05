@@ -41,31 +41,35 @@ func (this *HttpServer) Run() {
 	}
 
 	r = gin.Default()
-
+	r.Use(mdw.CorsFilter)
 	api := r.Group("/api/v1")
-	api.Use(mdw.CorsFilter, mdw.AuthUserFilter)
+	api.Use(mdw.AuthUserFilter)
 	{
 		api.POST("/login", apiController.Login)
-		api.OPTIONS("/login", apiController.Login)
 
 		api.POST("/logout", apiController.Logout)
-		api.OPTIONS("/logout", apiController.Logout)
 
 		api.GET("/logs", apiController.GetLogList)
-		api.OPTIONS("/logs", apiController.GetLogList)
 
-		api.GET("/logs/:appcode/:id", apiController.GetLogDetail)
-		api.OPTIONS("/logs/:appcode/:id", apiController.GetLogDetail)
+		api.GET("/logs/:id", apiController.GetLogDetail)
+
+		api.GET("/indices", apiController.Getindices)
+		api.DELETE("/indices/:index", apiController.DeleteIndex)
 
 		api.GET("/users/me", apiController.GetUserById)
-		api.OPTIONS("/users/me", apiController.GetUserById)
+
+		api.GET("/users", apiController.GetUserList)
 		api.POST("/users", apiController.AddUser)
-		api.PATCH("/users/:id", apiController.EditUser)
+
+		api.PUT("/users/:id", apiController.EditUser)
 
 		api.GET("/apps", apiController.GetAppAll)
 		api.POST("/apps", apiController.AddApp)
 		api.PUT("/apps", apiController.EditApp)
-		api.OPTIONS("/apps", apiController.GetAppAll)
+
+		api.GET("/apps/:appid/members", apiController.GetAppMembers)
+		api.POST("/apps/:appid/members", apiController.AddAppMember)
+		api.DELETE("/apps/:appid/members/:userid", apiController.DeleteAppMember)
 	}
 
 	push := r.Group("/push/v1")

@@ -4,6 +4,7 @@ import "time"
 
 const (
 	DatetimeFormart = "2006-01-02 15:04:05"
+	DateFormart = "2006-01-02"
 )
 
 func GetNowTimezone() *time.Location {

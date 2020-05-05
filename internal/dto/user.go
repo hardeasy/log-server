@@ -4,7 +4,8 @@ type UserInfo struct {
 	Id int `json:"id"`
 	Username string `json:"username"`
 	Email string `json:"email"`
-	Phone string `json:"phone"`
+	CreatedAt string `json:"created_at"`
+	IsDisable int `json:"is_disable"`
 }
 
 type AddUser struct {
@@ -15,7 +16,8 @@ type AddUser struct {
 
 type EditUser struct {
 	Id int `json:"id"`
-	IsOpen int `json:"is_open" binding:"required"`
+	IsDisable int `json:"is_disable"`
+	Email string `json:"email" binding:"required"`
 	Password string `json:"password"`
 }
 

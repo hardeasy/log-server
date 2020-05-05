@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type PushLogDto struct {
 	Time int `form:"time" json:"time" binding:"required"`
 	Level string `form:"level" json:"level" binding:"required"`
@@ -10,7 +12,7 @@ type PushLogDto struct {
 type Log struct {
 	Id string `json:"id"`
 	Level string `json:"level"`
-	Time string `json:"time"`
+	Time time.Time `json:"time"`
 	Content string `json:"content"`
 	Appcode string `json:"appcode"`
 }

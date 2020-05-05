@@ -3,9 +3,7 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"log-server/internal/dto"
-	"log-server/internal/utils"
 	"strconv"
-	"time"
 )
 
 func (this *controller) GetLogList(c *gin.Context) {
@@ -26,11 +24,27 @@ func (this *controller) GetLogList(c *gin.Context) {
 		Offset: (page - 1) * pageSize,
 		Limit:  pageSize,
 		Order:  "",
-		Q: map[string]string{
+		Q: map[string]interface{}{
 			"level": c.Query("level"),
 			"content": c.Query("content"),
-			"appCode": c.Query("appcode"),
 		},
+	}
+	username,_ := c.Keys["username"].(string)
+
+	appcode := c.Query("appcode")
+	if len(appcode) > 0 {
+		d.Q["appCode"] = []string{appcode}
+	} else {
+		if username != "admin" {
+			userModel := this.Service.GetUserByName(username)
+			userAppIds := this.Service.GetUserAppids(userModel.Id)
+			appList := this.Service.GetAppByIds(userAppIds)
+			allowAppcodes := []string{"_aaa"}
+			for _,item := range appList {
+				allowAppcodes = append(allowAppcodes, item.Code)
+			}
+			d.Q["appCode"] = allowAppcodes
+		}
 	}
 
 	result,sum := this.Service.GetLogList(d)
@@ -39,7 +53,7 @@ func (this *controller) GetLogList(c *gin.Context) {
 		list = append(list, dto.Log{
 			Id:      item.Id,
 			Level:   item.Level,
-			Time:    time.Unix(int64(item.Time), 0).Format(utils.DatetimeFormart),
+			Time:    item.Time,
 			Content: item.Content,
 			Appcode: item.Appcode,
 		})
@@ -60,8 +74,7 @@ func (this *controller) GetLogDetail(c *gin.Context) {
 		this.Error(c, "id not found")
 		return
 	}
-	appcode := c.Param("appcode")
-	d := this.Service.GetById(appcode, id)
+	d := this.Service.GetById(id)
 	if d == nil {
 		this.Error(c, "not found")
 		return
@@ -69,10 +82,30 @@ func (this *controller) GetLogDetail(c *gin.Context) {
 	data := dto.Log{
 		Id:      d.Id,
 		Level:   d.Level,
-		Time:    time.Unix(int64(d.Time), 0).Format(utils.DatetimeFormart),
+		Time:    d.Time,
 		Content: d.Content,
 		Appcode: d.Appcode,
 	}
 
 	this.Echo(c, data, "")
+}
+
+func (this *controller) Getindices(c *gin.Context) {
+	list := this.Service.GetLogEsIndexList()
+	this.Echo(c, list, "")
+}
+
+func (this *controller) DeleteIndex(c *gin.Context) {
+	indexName := c.Param("index")
+	username,_ := c.Keys["username"].(string)
+	if username != "admin" {
+		this.Error(c, "没权限")
+		return
+	}
+	err := this.Service.DeleteEsIndex(indexName)
+	if err != nil {
+		this.Error(c, err.Error())
+		return
+	}
+	this.Echo(c, nil, "")
 }

@@ -12,8 +12,8 @@ func (s *Service) GetLogList(d *dto.GeneralListDto) (rList []*models.Log, rSum i
 	return
 }
 
-func (s *Service) GetById(appCode string, id string) *models.Log {
-	return s.Dao.LogDao.GetById(s.Dao.Elastic, appCode, id)
+func (s *Service) GetById(id string) *models.Log {
+	return s.Dao.LogDao.GetById(s.Dao.Elastic, id)
 }
 
 func (s *Service) Push(d dto.PushLogDto) (rErr error) {
@@ -44,4 +44,12 @@ func (s *Service) PushLogToEs() {
 	for item := range s.PushEsChan {
 		s.Dao.LogDao.AddPushLog(s.Dao.Elastic, item)
 	}
+}
+
+func (s *Service) GetLogEsIndexList() []dto.Index {
+	return s.Dao.LogDao.GetIndexList(s.Dao.Elastic)
+}
+
+func (s *Service) DeleteEsIndex(indexName string) error {
+	return s.Dao.LogDao.DeleteIndex(s.Dao.Elastic, indexName)
 }

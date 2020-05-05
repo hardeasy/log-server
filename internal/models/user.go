@@ -9,7 +9,7 @@ type User struct {
 	Email string
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	IsOpen int
+	IsDisable int
 }
 
 func (User) TableName() string {

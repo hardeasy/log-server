@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"log-server/internal/dto"
+	"log-server/internal/utils"
 	"strconv"
 )
 
@@ -56,4 +57,44 @@ func (this *controller) EditUser(c *gin.Context) {
 	}
 	this.Echo(c, "", "")
 	return
+}
+
+func (this *controller) GetUserList(c *gin.Context) {
+	page,err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		page = 1
+	}
+	if page < 1 {
+		page = 1
+	}
+
+	pageSize,err := strconv.Atoi(c.Query("pageSize"))
+	if err != nil {
+		pageSize = 30
+	}
+
+	d := &dto.GeneralListDto{
+		Offset: (page - 1) * pageSize,
+		Limit:  pageSize,
+		Order:  "",
+		Q: map[string]interface{}{
+			"username": c.Query("username"),
+			"email": c.Query("email"),
+		},
+	}
+	result,sum := this.Service.GetUserList(d)
+	list := []dto.UserInfo{}
+	for _,item := range result {
+		list = append(list, dto.UserInfo{
+			Id:       item.Id,
+			Username: item.Username,
+			Email:    item.Email,
+			CreatedAt: item.CreatedAt.Format(utils.DatetimeFormart),
+			IsDisable: item.IsDisable,
+		})
+	}
+	this.Echo(c, map[string]interface{}{
+		"items": list,
+		"total": sum,
+	}, "")
 }

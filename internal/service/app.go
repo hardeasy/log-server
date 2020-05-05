@@ -18,6 +18,17 @@ func (s *Service) GetAppbyId(id int) *models.App {
 	return s.Dao.AppDao.GetById(s.Dao.Db, id)
 }
 
+func (s Service) GetAppByIds(ids []int) []*models.App {
+	list := []*models.App{}
+	for  _, id:= range ids {
+		item := s.GetAppbyId(id)
+		if item != nil {
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
 func (s *Service) GetAppbyAccessToken(accessToken string) *models.App {
 	var app *models.App
 	cacheKey := fmt.Sprintf("pushapp_%s", accessToken) //accesstoken -> pushapp 映射
@@ -50,13 +61,10 @@ func (s Service) AddApp(app dto.AddApp) error {
 	if repeatModel != nil {
 		return errors.New("编码重复")
 	}
-	if len(app.AccessToken) == 0 {
-		app.AccessToken = utils.RandString(32)
-	}
 	model := &models.App{
 		Name:        app.Name,
 		Code:        app.Code,
-		AccessToken: app.AccessToken,
+		AccessToken: utils.RandString(32),
 		CreatedAt:   utils.ConvertTimezone(time.Now()),
 		UpdatedAt:   utils.ConvertTimezone(time.Now()),
 	}
@@ -74,8 +82,26 @@ func (s Service) EditApp(app dto.EditApp) error {
 		return errors.New("编码重复")
 	}
 	model.Code = app.Code
-	model.AccessToken = app.AccessToken
 	model.Name = app.Name
 	model.UpdatedAt = utils.ConvertTimezone(time.Now())
 	return s.Dao.AppDao.Edit(s.Dao.Db, model)
+}
+
+func (s Service) AddAppMember(d dto.AddAppMember) error {
+	for _, userId := range d.UserIds {
+		s.Dao.AppDao.AddAppMember(s.Dao.Db, d.AppId, userId)
+	}
+	return nil
+}
+
+func (s Service) DeleteAppMember(d dto.DeleteAppMember) error {
+	return s.Dao.AppDao.DeleteAppMember(s.Dao.Db, d.AppId, d.UserId)
+}
+
+func (s Service) GetAppMembers(appId int) []int {
+	return s.Dao.AppDao.GetAppMembers(s.Dao.Db, appId)
+}
+
+func (s Service) GetUserAppids(userId int) []int {
+	return s.Dao.AppDao.GetUserApps(s.Dao.Db, userId)
 }
